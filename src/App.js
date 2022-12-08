@@ -1,10 +1,10 @@
-import React, { useReducer } from 'react'
+import React, { useReducer, useState, useRef } from 'react'
 import './App.css'
 
 const initialState = {
   todos: [],
   todo: "",
-  currentIndex: -1,
+  completed: false,
 }
 
 const todoReducer = (state, action) => {
@@ -23,14 +23,15 @@ const todoReducer = (state, action) => {
         ...state, todos: newTodo
       }
     case "UPDATE":
-      const updateTodo = [...state.todos];
-      updateTodo[action.payload.index] = action.payload.todo;
-      return { ...state, todos: updateTodo }
+      const newJobs2 = [...state.todos];
+      newJobs2[action.payload.index] = action.payload.todo;
+      return { ...state, todos: newJobs2 };
 
-    case "TOGGLE": {
-      todos: state.todos.map((item, index) =>
-        index === action.index ? { ...item, completed: !item.completed } : item)
-    }
+    // case "TOGGLE": {
+    //   todos: state.todos.map((item, index) =>
+    //     state.todos.index === action.payload.index ? { ...item, completed: !item.completed } : item)
+    // }
+    //   return { ...state.todos }
 
     default:
       return state;
@@ -38,44 +39,52 @@ const todoReducer = (state, action) => {
 }
 
 const App = () => {
-
-  const [state, dispatch] = useReducer(todoReducer, initialState)
-  const { todos, todo, currentIndex } = state;
+  const ref = useRef();
+  const [state, dispatch] = useReducer(todoReducer, initialState);
+  const { todo, todos, completed } = state;
+  const [currentIndex, setIndex] = useState(-1);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(todo);
-
-    //hw
-
     if (todo) {
-      dispatch({ type: "ADD", payload: todo})
+      if (currentIndex === -1) {
+        // const newTodo = {todo, complete: false,}
+        dispatch({ type: "ADD", payload: todo });
+      } else {
+        dispatch({ type: "UPDATE", payload: { todo, index: currentIndex } });
+
+      }
     }
     dispatch({ type: "SET", payload: "" });
+    ref.current.focus();
+    setIndex(-1);
   };
+
 
   return (
     <>
       <div className='App'>
-        <form >
-          <input value={todo} onChange={(e) => { dispatch({ type: "SET", payload: e.target.value }) }} />
-          <button onClick={handleSubmit}>submit</button>
+        <h4>Todo-App</h4>
+        <h4>{todos.length}</h4>
+        <form onSubmit={handleSubmit}>
+          <input ref={ref} value={todo} onChange={(e) => { dispatch({ type: "SET", payload: e.target.value }) }} />
+          {/* <button onClick={handleSubmit}>submit</button> */}
         </form>
 
         <div>
           {
             todos.map((item, index) => (
-              <div key={index}  style={{ textDecoration: item.completed ? "line-through" : "" }}>
-                <ul>{item}</ul>
+              <div key={index}>
+                <ul style={{ textDecoration: item ? "line-through" : "" }}
+                  onClick={() => {
+                    setIndex(index);
+                    dispatch({ type: "SET", payload: item });
+                  }}>{item}</ul>
                 <button onClick={() => dispatch({ type: "DELETE", payload: index })}>delete</button>
-                <button onClick={() => dispatch({ type: "SET", payload: item })}>Edit</button>
-                <button onClick={() => dispatch({ type: "TOGGLE", payload: index })}>Edit</button>
+                <button onClick={() => dispatch({ type: "TOGGLE", payload: index })}>Toggle</button>
               </div>
             ))
           }
-        </div>
-        <div>
-          {/* {JSON.stringify(todos)} */}
         </div>
       </div>
     </>
@@ -83,3 +92,8 @@ const App = () => {
 }
 
 export default App
+
+
+
+
+
